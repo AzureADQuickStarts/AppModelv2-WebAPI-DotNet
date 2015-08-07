@@ -28,7 +28,7 @@ using System.Security.Claims;
 
 namespace TodoListService.Controllers
 {
-    [Authorize]
+    // TODO: Secure the TodoListController
     public class TodoListController : ApiController
     {
         static ConcurrentBag<TodoItem> todoBag = new ConcurrentBag<TodoItem>();
@@ -36,11 +36,7 @@ namespace TodoListService.Controllers
         // GET api/todolist
         public IEnumerable<TodoItem> Get()
         {
-            // You can use the ClaimsPrincipal to access information about the
-            // user making the call.  In this case, we use the 'sub' or
-            // NameIdentifier claim to serve as a key for the tasks in the data store.
-
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier);
+            // TODO: Get the user's identifier provided in the bearer token.
 
             return from todo in todoBag
                    where todo.Owner == subject.Value
