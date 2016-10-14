@@ -36,7 +36,7 @@ namespace TodoListService.Controllers
         // GET api/todolist
         public IEnumerable<TodoItem> Get()
         {
-            // TODO: Get the user's identifier provided in the bearer token. 
+            // TODO: Get the user's identifier provided in the bearer token.
 
             return from todo in todoBag
                    where todo.Owner == subject.Value

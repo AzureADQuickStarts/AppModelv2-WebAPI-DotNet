@@ -17,7 +17,7 @@ namespace TodoListService
 
         public void ConfigureAuth(IAppBuilder app)
         {
-            // TODO: Set up OWIN for oAuth authentication. 
+            // TODO: Set up OWIN for OAuth authentication.
         }
     }
 }
