@@ -17,27 +17,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 
 // The following using statements were added for this sample.
-using System.Globalization;
-using Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Identity.Client;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Script.Serialization;
 using System.Runtime.InteropServices;
 using System.Configuration;
-using Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory;
 
 namespace TodoListClient
 {
@@ -47,37 +36,34 @@ namespace TodoListClient
     public partial class MainWindow : Window
     {
         
-        // The Client ID is used by the application to uniquely identify itself to the v2.0 endpoint
-        // The AAD Instance is the instance of the v2.0 endpoint
-        // The Redirect URI is the URI where the v2.0 endpoint will return OAuth responses.
-        // The Authority is the sign-in URL.
-        
-        private static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+        // The Client ID is used by the application to uniquely identify itself to the v2.0 endpoint        
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
-        Uri redirectUri = new Uri(ConfigurationManager.AppSettings["ida:RedirectUri"]);
-        private static string authority = String.Format(CultureInfo.InvariantCulture, aadInstance, "common");
+
+        // The todoListBaseAddress is the address of your Web API
         private static string todoListBaseAddress = ConfigurationManager.AppSettings["todo:TodoListBaseAddress"];
 
         private HttpClient httpClient = new HttpClient();
-        private AuthenticationContext authContext = null;
+        private PublicClientApplication app = null;
 
         protected override async void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
 
-            authContext = new AuthenticationContext(authority, new FileCache());
+            app = new PublicClientApplication(clientId)
+            {
+                UserTokenCache = new FileCache(),
+            };
             AuthenticationResult result = null;
 
             try
             {
-                result = await authContext.AcquireTokenAsync(new string[] { clientId }, null, clientId, redirectUri, new PlatformParameters(PromptBehavior.Never, null));
-
+                result = await app.AcquireTokenSilentAsync(new string[] { clientId });
                 SignInButton.Content = "Clear Cache";
                 GetTodoList();
             }
-            catch (AdalException ex)
+            catch (MsalException ex)
             {
-                if (ex.ErrorCode == "user_interaction_required")
+                if (ex.ErrorCode == "failed_to_acquire_token_silently")
                 {
                 }
                 else
@@ -103,11 +89,11 @@ namespace TodoListClient
             AuthenticationResult result = null;
             try
             {
-                result = await authContext.AcquireTokenAsync(new string[] { clientId }, null, clientId, redirectUri, new PlatformParameters(PromptBehavior.Never, null));
+                result = await app.AcquireTokenSilentAsync(new string[] { clientId });
             }
-            catch (AdalException ex)
+            catch (MsalException ex)
             {
-                if (ex.ErrorCode == "user_interaction_required")
+                if (ex.ErrorCode == "failed_to_acquire_token_silently")
                 {
                     MessageBox.Show("Please sign in first");
                     SignInButton.Content = "Sign In";
@@ -155,11 +141,11 @@ namespace TodoListClient
             AuthenticationResult result = null;
             try
             {
-                result = await authContext.AcquireTokenAsync(new string[] { clientId }, null, clientId, redirectUri, new PlatformParameters(PromptBehavior.Never, null));
+                result = await app.AcquireTokenAsync(new string[] { clientId });
             }
-            catch (AdalException ex)
+            catch (MsalException ex)
             {
-                if (ex.ErrorCode == "user_interaction_required")
+                if (ex.ErrorCode == "failed_to_acquire_token_silently")
                 {
                     MessageBox.Show("Please sign in first");
                     SignInButton.Content = "Sign In";
@@ -199,7 +185,7 @@ namespace TodoListClient
             if (SignInButton.Content.ToString() == "Clear Cache")
             {
                 TodoList.ItemsSource = string.Empty;
-                authContext.TokenCache.Clear();
+                app.UserTokenCache.Clear(app.ClientId);
                 ClearCookies();
                 SignInButton.Content = "Sign In";
                 return;
@@ -208,11 +194,11 @@ namespace TodoListClient
             AuthenticationResult result = null;
             try
             {
-                result = await authContext.AcquireTokenAsync(new string[] { clientId }, null, clientId, redirectUri, new PlatformParameters(PromptBehavior.Always, null));
+                result = await app.AcquireTokenAsync(new string[] { clientId });
                 SignInButton.Content = "Clear Cache";
                 GetTodoList();
             }
-            catch (AdalException ex)
+            catch (MsalException ex)
             {
                 if (ex.ErrorCode == "authentication_canceled")
                 {
