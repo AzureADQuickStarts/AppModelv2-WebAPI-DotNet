@@ -141,7 +141,7 @@ namespace TodoListClient
             AuthenticationResult result = null;
             try
             {
-                result = await app.AcquireTokenAsync(new string[] { clientId });
+                result = await app.AcquireTokenSilentAsync(new string[] { clientId });
             }
             catch (MsalException ex)
             {
